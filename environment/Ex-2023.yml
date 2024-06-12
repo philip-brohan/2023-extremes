@@ -1,0 +1,30 @@
+name: Ex-2023
+channels:
+  - conda-forge
+dependencies:
+  # Basics
+  - python=3.9
+  - libwebp=1.3.2
+  - iris=3.6
+  - pandas=2.0
+  - cmocean=3.0
+  - parallel
+  # Get data from ERA5
+  # You'll need to register, see https://cds.climate.copernicus.eu/api-how-to
+  - cdsapi=0.6
+  # For convolution with missing data
+  - astropy=5.3
+  # Data processing - not fitting models here, so no need for GPU version
+  - tensorflow=2.16.1=cpu_py39hc1df215_0
+  # Optional, code formatter
+  - black
+  # Optional - documentation generator
+  - sphinx=7.0
+
+# Tell python to look for modules in the root directory of the project
+# (A hack, needs to be edited for every installation, but makes code
+#  management much easier.)
+# Replace with the path to your project directory root.
+
+variables:
+  PYTHONPATH: /net/home/h03/hadpb/Projects/2023-extremes
