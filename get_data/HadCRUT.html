@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>HadCRUT5 data download and access &#8212; Why was late 2023 so hot?</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Land mask download" href="land_mask.html" />
+    <link rel="prev" title="Get the data to be used" href="index.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="land_mask.html" title="Land mask download"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Get the data to be used"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">2023 extremes</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Get the data to be used</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">HadCRUT5 data download and access</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="hadcrut5-data-download-and-access">
+<h1>HadCRUT5 data download and access<a class="headerlink" href="#hadcrut5-data-download-and-access" title="Permalink to this heading">¶</a></h1>
+<p>Monthly average near-surface temperature anomalies, from in-situ observations (ships and stations), are available from <a class="reference external" href="https://www.metoffice.gov.uk/hadobs/hadcrut5">HadCRUT5</a>.</p>
+<p>It’s an ensemble dataset (100 members). We’re going to compromise here and only use 20 members.</p>
+<p>Script to do the whole download (about 600Mb). Only downloads data where it is not already on disc.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="c1"># Retrieve HadCRUT5</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">urllib.request</span> <span class="kn">import</span> <span class="n">urlretrieve</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+
+<span class="c1"># When this changes, probably check the HadCRUT web site for other changes</span>
+<span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;5.0.2.0&quot;</span>
+
+<span class="n">opdir</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/HadCRUT/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;SCRATCH&quot;</span><span class="p">),</span> <span class="n">version</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">opdir</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">opdir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">members</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;1_to_10&quot;</span><span class="p">,</span> <span class="s2">&quot;151_to_160&quot;</span><span class="p">):</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;https://www.metoffice.gov.uk/hadobs/hadcrut5/data/HadCRUT.</span><span class="si">%s</span><span class="s2">/&quot;</span>
+        <span class="o">+</span><span class="s2">&quot;analysis/HadCRUT.</span><span class="si">%s</span><span class="s2">.analysis.anomalies.</span><span class="si">%s</span><span class="s2">_netcdf.zip&quot;</span>
+    <span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">version</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span><span class="n">members</span><span class="p">)</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">.zip&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">opdir</span><span class="p">,</span> <span class="n">members</span><span class="p">)</span>
+    <span class="n">urlretrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_ref</span><span class="p">:</span>
+        <span class="n">zip_ref</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">opdir</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Having downloaded the data, we need to use it. So we need some convenience functions to access the data.</p>
+<p>Functions to access downloaded HadCRUT data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Functions to load HadCRUT</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">iris</span>
+<span class="kn">import</span> <span class="nn">iris.coord_systems</span>
+
+<span class="c1"># Specify a coordinate system to add on load so the cubes work properly with iris.</span>
+<span class="n">CMS</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">coord_systems</span><span class="o">.</span><span class="n">RotatedGeogCS</span><span class="p">(</span><span class="mi">90</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;5.0.2.0&quot;</span>
+<span class="n">opdir</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/HadCRUT/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;SCRATCH&quot;</span><span class="p">),</span> <span class="n">version</span><span class="p">)</span>
+
+<span class="c1"># Only using a subset of the members</span>
+<span class="n">members</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">2</span><span class="p">,</span>
+    <span class="mi">3</span><span class="p">,</span>
+    <span class="mi">4</span><span class="p">,</span>
+    <span class="mi">5</span><span class="p">,</span>
+    <span class="mi">6</span><span class="p">,</span>
+    <span class="mi">7</span><span class="p">,</span>
+    <span class="mi">8</span><span class="p">,</span>
+    <span class="mi">9</span><span class="p">,</span>
+    <span class="mi">10</span><span class="p">,</span>
+    <span class="mi">151</span><span class="p">,</span>
+    <span class="mi">152</span><span class="p">,</span>
+    <span class="mi">153</span><span class="p">,</span>
+    <span class="mi">154</span><span class="p">,</span>
+    <span class="mi">155</span><span class="p">,</span>
+    <span class="mi">156</span><span class="p">,</span>
+    <span class="mi">157</span><span class="p">,</span>
+    <span class="mi">158</span><span class="p">,</span>
+    <span class="mi">159</span><span class="p">,</span>
+    <span class="mi">160</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="c1"># And a function to add the coord system to a cube (in-place)</span>
+<span class="k">def</span> <span class="nf">add_coord_system</span><span class="p">(</span><span class="n">cbe</span><span class="p">):</span>
+    <span class="n">cbe</span><span class="o">.</span><span class="n">coord</span><span class="p">(</span><span class="s2">&quot;latitude&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">coord_system</span> <span class="o">=</span> <span class="n">CMS</span>
+    <span class="n">cbe</span><span class="o">.</span><span class="n">coord</span><span class="p">(</span><span class="s2">&quot;longitude&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">coord_system</span> <span class="o">=</span> <span class="n">CMS</span>
+
+
+<span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">member</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">year</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">month</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">member</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Year, month and member must be specified&quot;</span><span class="p">)</span>
+    <span class="n">fname</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/HadCRUT.</span><span class="si">%s</span><span class="s2">.analysis.anomalies.</span><span class="si">%d</span><span class="s2">.nc&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">opdir</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">member</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;No data file </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">fname</span><span class="p">)</span>
+    <span class="n">ftt</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">Constraint</span><span class="p">(</span>
+        <span class="n">time</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cell</span><span class="p">:</span> <span class="n">cell</span><span class="o">.</span><span class="n">point</span><span class="o">.</span><span class="n">month</span> <span class="o">==</span> <span class="n">month</span> <span class="ow">and</span> <span class="n">cell</span><span class="o">.</span><span class="n">point</span><span class="o">.</span><span class="n">year</span> <span class="o">==</span> <span class="n">year</span>
+    <span class="p">)</span>
+    <span class="n">varC</span> <span class="o">=</span> <span class="n">iris</span><span class="o">.</span><span class="n">load_cube</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">ftt</span><span class="p">)</span>
+    <span class="n">add_coord_system</span><span class="p">(</span><span class="n">varC</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">grid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">varC</span><span class="o">.</span><span class="n">coords</span><span class="p">(</span><span class="s2">&quot;latitude&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">varC</span><span class="o">.</span><span class="n">coords</span><span class="p">(</span><span class="s2">&quot;longitude&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">bounds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">varC</span> <span class="o">=</span> <span class="n">varC</span><span class="o">.</span><span class="n">regrid</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">iris</span><span class="o">.</span><span class="n">analysis</span><span class="o">.</span><span class="n">Linear</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">varC</span>
+</pre></div>
+</div>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/ExT.webp" alt="Logo"/>
+            </a></p>
+<h3><a href="../index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Selecting, downloading, and handling the data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualizations/index.html">Visualizations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utils/index.html">Utility functions for plotting and re-gridding</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../how_to.html">How to reproduce or extend this work</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../credits.html">Authors and acknowledgements</a></li>
+</ul>
+<h3><a href="https://github.com/philip-brohan/2023-extremes">Get a copy</a></h3>
+
+<ul>
+    <li><a href="https://github.com/philip-brohan/2023-extremes" rel="nofollow">Github repository</a></li>
+</ul>
+
+<h3>Found a bug, or have a suggestion?</h3>
+
+Please <a href="https://github.com/philip-brohan/2023-extremes/issues/new">raise an issue</a>.
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="land_mask.html" title="Land mask download"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Get the data to be used"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">2023 extremes</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Get the data to be used</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">HadCRUT5 data download and access</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    </div>
+  </body>
+</html>
