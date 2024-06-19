@@ -21,6 +21,7 @@ import cmocean
 
 from utilities import grids
 from fit_linear.apply_fit import get_residual, get_fit
+from fit_enso.apply_fit import get_enso_residual, get_enso_fit
 
 from makeDataset import getDataset
 
@@ -31,7 +32,11 @@ parser.add_argument(
     "--month", help="Month to show", type=int, required=False, default=None
 )
 parser.add_argument(
-    "--value", help="raw|fit|residual", type=str, required=False, default="raw"
+    "--value",
+    help="raw|fit|residual|fit_enso|residual_enso",
+    type=str,
+    required=False,
+    default="raw",
 )
 parser.add_argument(
     "--startyear", help="Start Year", type=int, required=False, default=1970
@@ -73,10 +78,20 @@ for batch in trainingData:
         rawC.data = value
         rawC = get_fit(rawC, year, month)
         value = rawC.data
-    elif args.value == "residual":
+    elif (
+        args.value == "residual"
+        or args.value == "enso_fit"
+        or args.value == "enso_residual"
+    ):
         rawC.data = value
         rawC = get_residual(rawC, year, month)
         value = rawC.data
+        if args.value == "enso_fit":
+            rawC = get_enso_fit(rawC, year, month)
+            value = rawC.data
+        if args.value == "enso_residual":
+            rawC = get_enso_residual(rawC, year, month)
+            value = rawC.data
     raw.append(np.ma.average(value, weights=rawC_areas))
     dts.append(year + (month - 0.5) / 12)
     members.append(member)

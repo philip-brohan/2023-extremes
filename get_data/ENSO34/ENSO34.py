@@ -31,7 +31,7 @@ def load():
     values = []
     for i in range(data.shape[0]):
         for m in range(1, 13):
-            dts.append(int(data[i][0]) + m / 12)
+            dts.append("%04d-%02d" % (data[i][0], m))
             values.append(data[i][m])
     dts = np.array(dts)
     values = np.array(values)
