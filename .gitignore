@@ -1,6 +1,6 @@
 # Data files
 *.nc
-Masaru_data/**/*
+data4PhilipBrohan/**/*
 
 # Images
 *.png
